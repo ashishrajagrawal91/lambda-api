@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "noImplicitAny": true,
+    "baseUrl": "./",
+    "esModuleInterop" : true
+  },
+  "include": ["./functions", "./layers/common"],
+  "exclude": ["node_modules"]
+}

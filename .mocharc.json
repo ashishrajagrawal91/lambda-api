@@ -1,0 +1,9 @@
+{
+  "require": ["ts-node/register"],
+  "spec": [
+    "./functions/**/*.test.ts"
+  ],
+  "ignore": ["node_modules"],
+  "full-trace": true,
+  "extension": ["ts", "tsx"]
+}

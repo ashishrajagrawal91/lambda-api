@@ -1,0 +1,12 @@
+{
+  "name": "layer",
+  "version": "1.0.0",
+  "description": "lambda layer",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.87.0",
+    "@aws-sdk/util-dynamodb": "^3.87.0",
+    "common": "file:../common",
+    "joi": "^17.6.0",
+    "uuid": "^8.3.2"
+  }
+}

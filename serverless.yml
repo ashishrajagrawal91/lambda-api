@@ -1,0 +1,180 @@
+service: todo-item
+
+package:
+  individually: true
+  patterns:
+    - '!coverage/**'
+    - '!functions/gateway/todo_item/**'
+    - '!layers/**'
+    - '!*.js'
+    - '!*.json'
+    - '!README.md'
+    - '!node_modules/**'
+
+provider:
+  stage: ${opt:stage}
+  region: ${opt:region}
+  name: aws
+  runtime: nodejs14.x
+  memorySize: 512
+  timeout: 10
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: 
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${self:provider.stage}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${self:provider.stage}/index/StatusCreatedAtIndex"
+
+layers:
+  TodoItem:
+    path: layers
+    name: todo-item-common-${self:provider.stage}
+    description: Lambda Layer for todo item service
+    compatibleRuntimes:
+      - nodejs14.x
+
+functions:
+  TodoItemCreate:
+    handler: functions/gateway/todo_item/create_todo_item/index.handler
+    description: Lambda service to create todo item
+    name: todo-item-create-${self:provider.stage}
+    events:
+      - http:
+          path: todoItem
+          method: post
+          cors: true
+    tags:
+      Application : Todo Item
+    environment:
+      APP_ENV: ${self:provider.stage}
+      DDB_TODO_TABLE: ${self:service}-${self:provider.stage}
+    layers:
+      - !Ref TodoItemLambdaLayer
+    package:
+      patterns:
+        - 'functions/gateway/todo_item/create_todo_item/**'
+
+  TodoItemUpdate:
+    handler: functions/gateway/todo_item/update_todo_item/index.handler
+    description: Lambda service to update todo item based on todoItemId
+    name: todo-item-update-${self:provider.stage}
+    events:
+      - http:
+          path: todoItem/{todoItemId}
+          method: put
+          cors: true
+    tags:
+      Application : Todo Item
+    environment:
+      APP_ENV: ${self:provider.stage}
+      DDB_TODO_TABLE: ${self:service}-${self:provider.stage}
+    layers:
+      - !Ref TodoItemLambdaLayer
+    package:
+      patterns:
+        - 'functions/gateway/todo_item/update_todo_item/**'
+
+  TodoItemDelete:
+    handler: functions/gateway/todo_item/delete_todo_item/index.handler
+    description: Lambda service to delete todo item based on todoItemId
+    name: todo-item-delete-${self:provider.stage}
+    events:
+      - http:
+          path: todoItem/{todoItemId}
+          method: delete
+          cors: true
+    tags:
+      Application : Todo Item
+    environment:
+      APP_ENV: ${self:provider.stage}
+      DDB_TODO_TABLE: ${self:service}-${self:provider.stage}
+    layers:
+      - !Ref TodoItemLambdaLayer
+    package:
+      patterns:
+        - 'functions/gateway/todo_item/delete_todo_item/**'
+
+  TodoItemGet:
+    handler: functions/gateway/todo_item/get_todo_item/index.handler
+    description: Lambda service to get todo item based on todoItemId
+    name: todo-item-get-${self:provider.stage}
+    events:
+      - http:
+          path: todoItem/{todoItemId}
+          method: get
+          cors: true
+    tags:
+      Application : Todo Item
+    environment:
+      APP_ENV: ${self:provider.stage}
+      DDB_TODO_TABLE: ${self:service}-${self:provider.stage}
+    layers:
+      - !Ref TodoItemLambdaLayer
+    package:
+      patterns:
+        - 'functions/gateway/todo_item/get_todo_item/**'
+
+  TodoItemList:
+    handler: functions/gateway/todo_item/list_todo_item/index.handler
+    description: Lambda service to list todo item
+    name: todo-item-list-${self:provider.stage}
+    events:
+      - http:
+          path: todoItem
+          method: get
+          cors: true
+    tags:
+      Application : Todo Item
+    environment:
+      APP_ENV: ${self:provider.stage}
+      DDB_TODO_TABLE: ${self:service}-${self:provider.stage}
+    layers:
+      - !Ref TodoItemLambdaLayer
+    package:
+      patterns:
+        - 'functions/gateway/todo_item/list_todo_item/**'
+      
+resources:
+  Resources:
+    TodoItemDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+          -
+            AttributeName: createdAt
+            AttributeType: N
+          -
+            AttributeName: status
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: StatusCreatedAtIndex
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: 'ALL'
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        TableName: ${self:service}-${self:provider.stage}
