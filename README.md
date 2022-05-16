@@ -8,14 +8,32 @@
 ### To setup in local
 
 * Install node js (v14.16.0+)
-* Run: git clone https://github.com/ashishrajagrawal91/lambda-api.git
-* Run: npm install
+* Run: `git clone https://github.com/ashishrajagrawal91/lambda-api.git`
+* Run: `npm install`
 
 
 ### To run eslint and fix error
 
-* Run: npm run lint
-* Run: npm run lint:fix
+* Run: `npm run lint`
+* Run: `npm run lint:fix`
+
+
+### To Deploy via serverless framwork
+
+#### Install Serverelss 
+* Run: `npm install serverless -g`
+#### Configure AWS profile for serverless deployment
+* Run: `serverless config credentials \
+  --provider aws \
+  --key XXXX \
+  --secret XXXX \
+  --profile XXXX`
+#### Deploy application
+* Run: `sls deploy --aws-profile XXXX --stage develop --region eu-west-2 --verbose`
+#### Check deploy list
+* Run: `sls list --aws-profile XXXX --verbose`
+#### Delete serverless stack
+* Run: `sls remove --aws-profile XXXX --stage develop --region eu-west-2 --verbose`
 
 
 ### API Details
